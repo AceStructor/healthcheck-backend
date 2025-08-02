@@ -15,9 +15,11 @@ func WriteConfig(config Config) error {
 func ReadConfig() ([]Config, error) {
     var configs []Config
     
-    if err := DB.Where("disabled = false").Find(&configs).Error; err != nil {
-        return errors.New(500, "failed to read configs from database: %v", err)
+    if err := DB.Where("disabled = 0").Find(&configs).Error; err != nil {
+        return nil, errors.New(500, "failed to read configs from database: %v", err)
     }
+    
+    return configs, nil
 }
 
 func UpdateConfig(config Config) error {
