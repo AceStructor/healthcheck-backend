@@ -11,7 +11,7 @@ type Config struct {
     Address        string
     IntervalSeconds int
     CreatedAt      time.Time
-    UpdatedAt      time.Time
+    LastChecked    time.Time
     Disabled       bool `gorm:"not null;default:false"`
     
 }

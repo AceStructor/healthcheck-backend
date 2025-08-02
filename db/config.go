@@ -22,15 +22,27 @@ func ReadConfig() ([]Config, error) {
     return configs, nil
 }
 
-func UpdateConfig(config Config, disabled bool) error {
+func DisableConfig(config Config) error {
 	var targetConfig Config
 	
 	if err := DB.First(&targetConfig, config.ID).Error; err != nil {
         return errors.New(500, "failed to find config in database: %v", err)
     }
     
-    if err := DB.Model(&targetConfig).Updates(Config{Disabled: disabled}).Error; err != nil {
+    if err := DB.Model(&targetConfig).Updates(Config{Disabled: true}).Error; err != nil {
 		return errors.New(500, "failed to update config: %v", err)
 	}
 
+}
+
+func UpdateConfig(config Config) error {
+	var targetConfig Config
+	
+	if err := DB.First(&targetConfig, config.ID).Error; err != nil {
+        return errors.New(500, "failed to find config in database: %v", err)
+    }
+    
+    if err := DB.Model(&targetConfig).Updates(Config{Name: config.Name, Type: config.Type, Address: config.Address, IntervalSeconds: config.IntervalSeconds, LastChecked: config.LastChecked}).Error; err != nil {
+		return errors.New(500, "failed to update config: %v", err)
+	}
 }
