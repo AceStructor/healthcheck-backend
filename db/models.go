@@ -20,6 +20,15 @@ type Result struct {
     ID            uint `gorm:"primaryKey"`
     ConfigID      uint
     Status        bool
+    Text	      string
     ResponseTime  int
     CheckedAt     time.Time
+}
+
+type JoinedResult struct {
+	Name	      string
+	Type          string
+	Address       string
+	Status        bool
+	Text	      string
 }
