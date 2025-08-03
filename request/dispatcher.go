@@ -9,7 +9,7 @@ import (
 )
 
 func RunChecks(WarningLog *log.Logger, InfoLog *log.Logger) error {
-    if cfgs, err := db.ReadConfig(); err != nil {
+    if cfgs, err := db.ReadConfig(WarningLog, InfoLogl); err != nil {
 		return fmt.Errorf("Error reading configs from database: %w", err)
 	}
 	
@@ -27,11 +27,11 @@ func RunChecks(WarningLog *log.Logger, InfoLog *log.Logger) error {
         
 		switch cfg.Type {
         case "http":
-            res, err = HTTPCheck(cfg)
+            res, err = HTTPCheck(cfg, WarningLog, InfoLog)
         case "tls":
-            res, err = TLSCheck(cfg)
+            res, err = TLSCheck(cfg, WarningLog, InfoLog)
         case "dns":
-            res, err = DNSCheck(cfg)
+            res, err = DNSCheck(cfg, WarningLog, InfoLog)
         default:
             WarningLog.Printfln("unsupported check type: %v", cfg.Type)
         }
@@ -43,11 +43,11 @@ func RunChecks(WarningLog *log.Logger, InfoLog *log.Logger) error {
         cfg.LastChecked = tStart
         res.ResponseTime = duration
         
-        if err := db.UpdateConfig(cfg); err != nil {
+        if err := db.UpdateConfig(cfg, WarningLog, InfoLog); err != nil {
             return fmt.Errorf("Error writing execution time to database: %w", err)
         }
         
-        if err := db.WriteResult(res, cfg.ID); err != nil {
+        if err := db.WriteResult(res, cfg.ID, WarningLog, InfoLog); err != nil {
             return fmt.Errorf("Error writing new result: %w", err)
         }
 	}

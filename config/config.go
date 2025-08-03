@@ -52,7 +52,7 @@ func InitConfig(WarningLog *log.Logger, InfoLog *log.Logger) error {
     InfoLog.Println("Initializing Configuration...")
     var cfgs []db.Config
     
-    cfgs, err := TranslateConfig("config/exampleConf.yaml")
+    cfgs, err := TranslateConfig("config/exampleConf.yaml", WarningLog, InfoLog)
     if err != nil {
         return fmt.Errorf("Error while translating config: %w", err
     }
