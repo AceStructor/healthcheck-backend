@@ -11,7 +11,8 @@ import (
 
 var DB *gorm.DB
 
-func InitDB() {
+func InitDB(WarningLog *log.Logger, InfoLog *log.Logger) error {
+	InfoLog.Println("Initializing Database...")
     dsn := fmt.Sprintf("%s:%s@(%s:3306)/%s?charset=utf8&parseTime=True",
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
@@ -22,12 +23,16 @@ func InitDB() {
 	// Connect to the database
 	DB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("failed to connect to database: %v", err)
+		return fmt.Errorf("failed to connect to database: %w", err)
 	}
     
     // Migrate the database scheme
+    InfoLog.Println("Migrating Database Scheme...")
     err := DB.AutoMigrate(&Config{}, &Result{})
     if err := nil {
-        log.Fatalf("failed to create or update tables according to the defined schemes: %v", err)
+        return fmt.Errorf("failed to create or update tables according to the defined schemes: %w", err)
     }
+    
+    InfoLog.Println("Database ready!")
+    return nil
 }

@@ -8,7 +8,8 @@ import (
     "github.com/AceStructor/healthcheck-backend/db"
 )
 
-func HTTPCheck(cfg db.Config) (db.Result, error) {
+func HTTPCheck(cfg db.Config, WarningLog *log.Logger, InfoLog *log.Logger) (db.Result, error) {
+    InfoLog.Printfln("Running http check for %v", cfg.ID)
     var res db.Result
     
     client := &http.Client{ Timeout: cfg.Timeout * time.Second }
@@ -18,6 +19,7 @@ func HTTPCheck(cfg db.Config) (db.Result, error) {
     if err != nil {
         res.Text = "Connection failed: " + err.Error()
         res.Status = false
+        WarningLog.Printfln("An error during http connection: %v", err)
         return res, nil
     }
     if resp.StatusCode >= 200 && resp.StatusCode < 300 {

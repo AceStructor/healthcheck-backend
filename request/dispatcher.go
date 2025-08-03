@@ -2,17 +2,19 @@ package request
 
 import (
     "fmt"
+    "log"
 	"time"
 	
     "github.com/AceStructor/healthcheck-backend/db"
 )
 
-func RunChecks() error {
+func RunChecks(WarningLog *log.Logger, InfoLog *log.Logger) error {
     if cfgs, err := db.ReadConfig(); err != nil {
 		return fmt.Errorf("Error reading configs from database: %w", err)
 	}
 	
 	for cfg := range cfgs {
+		InfoLog.Printfln("Executing check for config %v", cfg.ID)
 		tStart := time.Now()
         if tStart < cfg.LastChecked.Add(time.Second * cfg.IntervalSeconds) {
             continue
@@ -31,10 +33,10 @@ func RunChecks() error {
         case "dns":
             res, err = DNSCheck(cfg)
         default:
-            return fmt.Errorf("unsupported check type: %v", cfg.Type)
+            WarningLog.Printfln("unsupported check type: %v", cfg.Type)
         }
         if err != nil {
-            return fmt.Errorf("", err)
+            return fmt.Errorf("Error during Check: %w", err)
         }
         duration := time.Since(tStart)
         

@@ -1,48 +1,56 @@
 package db
 
 import (
-    "github.com/go-openapi/errors"
+    "fmt"
+    "log"
 )
 
-func WriteConfig(cfg Config) error {
+func WriteConfig(cfg Config, WarningLog *log.Logger, InfoLog *log.Logger) error {
+    InfoLog.Printfln("Creating Config %v (%v)", cfg.Name, cfg.Address)
     if err := DB.Create(&cfg).Error; err != nil {
-        return errors.New(500, "failed to create configuration entry: %v", err)
+        return fmt.Errorf("failed to create configuration entry: %w", err)
     }
     
     return nil
 }
 
-func ReadConfig() ([]Config, error) {
+func ReadConfig(WarningLog *log.Logger, InfoLog *log.Logger) ([]Config, error) {
+    InfoLog.Println("Reading Configs")
     var cfgs []Config
     
     if err := DB.Where("disabled = 0").Find(&cfgs).Error; err != nil {
-        return nil, errors.New(500, "failed to read configs from database: %v", err)
+        return nil, fmt.Errorf("failed to read configs from database: %w", err)
     }
     
     return cfgs, nil
 }
 
-func DisableConfig(cfg Config) error {
+func DisableConfig(cfg Config, WarningLog *log.Logger, InfoLog *log.Logger) error {
+	InfoLog.Printfln("Disabling Config %v", cfg.ID)
 	var targetConfig Config
 	
 	if err := DB.First(&targetConfig, cfg.ID).Error; err != nil {
-        return errors.New(500, "failed to find config in database: %v", err)
+        return fmt.Errorf("failed to find config in database: %w", err)
     }
     
     if err := DB.Model(&targetConfig).Updates(Config{Disabled: true}).Error; err != nil {
-		return errors.New(500, "failed to update config: %v", err)
+		return fmt.Errorf("failed to update config: %w", err)
 	}
-
+	
+	return nil
 }
 
-func UpdateConfig(cfg Config) error {
+func UpdateConfig(cfg Config, WarningLog *log.Logger, InfoLog *log.Logger) error {
+	InfoLog.Printfln("Updating Config %v", cfg.ID)
 	var targetConfig Config
 	
 	if err := DB.First(&targetConfig, cfg.ID).Error; err != nil {
-        return errors.New(500, "failed to find config in database: %v", err)
+        return fmt.Errorf("failed to find config in database: %w", err)
     }
     
     if err := DB.Model(&targetConfig).Updates(Config{Name: cfg.Name, Type: cfg.Type, Address: cfg.Address, IntervalSeconds: cfg.IntervalSeconds, LastChecked: cfg.LastChecked, Timeout: cfg.Timeout}).Error; err != nil {
-		return errors.New(500, "failed to update config: %v", err)
+		return fmt.Errorf("failed to update config: %w", err)
 	}
+	
+	return nil
 }

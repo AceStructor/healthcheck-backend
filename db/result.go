@@ -1,22 +1,26 @@
 package db
 
 import (
-    "github.com/go-openapi/errors"
+    "fmt"
+    "log"
 )
 
-func WriteResult(result Result, configId uint) error {
-	writeableResult := Result{ConfigID: configId, Status: result.Status, Text: result.Text, ResponseTime: result.ResponseTime}
+func WriteResult(res Result, configId uint, WarningLog *log.Logger, InfoLog *log.Logger) error {
+	InfoLog.Printfln("Writing Result for congig %v", configId)
+	writeableResult := Result{ConfigID: configId, Status: res.Status, Text: res.Text, ResponseTime: res.ResponseTime}
 	
     if err := DB.Create(&writeableResult).Error; err != nil {
-        return errors.New(500, "failed to create result entry: %v", err)
+        return fmt.Errorf("failed to create result entry: %w", err)
     }
     
     return nil
 }
 
-func ReadResult(query string, limit int32, offset int32, orderBy string, orderDirection string) ([]JoinedResult, error) {
-	var results []JoinedResult
+func ReadResult(query string, limit int32, offset int32, orderBy string, orderDirection string, WarningLog *log.Logger, InfoLog *log.Logger) ([]JoinedResult, error) {
+	InfoLog.Println("Reading Results...")
+	var ress []JoinedResult
 	
+	InfoLog.Println("Query: %v, Limit: %v, Offset: %v, Order By: %v, Order Direction: %v", query, limit, offset, orderBy, orderDirection)
 	if err := DB.Table("results")
 			    .Select("results.name, results.type, results.address, configs.status, configs.text")
 			    .Joins("INNER JOIN configs ON results.config_id = configs.id")
@@ -24,9 +28,9 @@ func ReadResult(query string, limit int32, offset int32, orderBy string, orderDi
 			    .Limit(int(limit))
 			    .Offset(int(offset))
 			    .Order(orderBy + " " + orderDirection)
-			    .Scan(&results); err != nil {
-		return nil, errors.New(500, "failed to search: %v", err)
+			    .Scan(&ress); err != nil {
+		return nil, fmt.Errorf("failed to search: %w", err)
 	}
 	
-	return results, nil
+	return ress, nil
 }
