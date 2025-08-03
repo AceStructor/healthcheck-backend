@@ -3,8 +3,10 @@ services:
     type: http
     address: https://example.com
     interval: 60
+    timeout: 5
 
   - name: API
     type: http
     address: https://api.example.com
     interval: 30
+    timeout: 10

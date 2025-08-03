@@ -17,6 +17,7 @@ type RawConfigElement struct {
     Type     string `yaml:"type"`
     Address  string `yaml:"address"`
     Interval int    `yaml:"interval"` // in seconds
+    Timeout	 int    `yaml:"timeout"`
 }
 
 func TranslateConfig(path String) ([]db.Config, error) {
@@ -36,7 +37,8 @@ func TranslateConfig(path String) ([]db.Config, error) {
             Name:            svc.Name,
             Type:            svc.Type,
             Address:         svc.Address,
-            IntervalSeconds: svc.Interval
+            IntervalSeconds: svc.Interval,
+            Timeout:		 svc.Timeout
         })
     }
     

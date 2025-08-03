@@ -10,10 +10,10 @@ type Config struct {
     Type           string // "http", "tcp", "dns"
     Address        string
     IntervalSeconds int
+    Timeout		   int
     CreatedAt      time.Time
     LastChecked    time.Time
     Disabled       bool `gorm:"not null;default:false"`
-    
 }
 
 type Result struct {
