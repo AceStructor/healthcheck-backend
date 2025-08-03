@@ -3,6 +3,9 @@ package db
 import (
     "fmt"
     "log"
+    
+    "gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func WriteResult(res Result, configId uint, WarningLog *log.Logger, InfoLog *log.Logger) error {
