@@ -9,7 +9,7 @@ import (
 )
 
 func WriteResult(res Result, configId uint, WarningLog *log.Logger, InfoLog *log.Logger) error {
-	InfoLog.Printfln("Writing Result for congig %v", configId)
+	InfoLog.Printf("Writing Result for congig %v \n", configId)
 	writeableResult := Result{ConfigID: configId, Status: res.Status, Text: res.Text, ResponseTime: res.ResponseTime}
 	
     if err := DB.Create(&writeableResult).Error; err != nil {

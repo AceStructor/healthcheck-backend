@@ -14,7 +14,7 @@ func RunChecks(WarningLog *log.Logger, InfoLog *log.Logger) error {
 	}
 	
 	for cfg := range cfgs {
-		InfoLog.Printfln("Executing check for config %v", cfg.ID)
+		InfoLog.Printf("Executing check for config %v \n", cfg.ID)
 		tStart := time.Now()
         if tStart < cfg.LastChecked.Add(time.Second * cfg.IntervalSeconds) {
             continue
@@ -33,7 +33,7 @@ func RunChecks(WarningLog *log.Logger, InfoLog *log.Logger) error {
         case "dns":
             res, err = DNSCheck(cfg, WarningLog, InfoLog)
         default:
-            WarningLog.Printfln("unsupported check type: %v", cfg.Type)
+            WarningLog.Printf("unsupported check type: %v \n", cfg.Type)
         }
         if err != nil {
             return fmt.Errorf("Error during Check: %w", err)

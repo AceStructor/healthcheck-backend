@@ -9,14 +9,14 @@ import (
 )
 
 func TCPCheck(cfg db.Config, WarningLog *log.Logger, InfoLog *log.Logger) (db.Result, error) {
-    InfoLog.Printfln("Running tcp check for %v", cfg.Name)
+    InfoLog.Printf("Running tcp check for %v \n", cfg.Name)
     var res db.Result
     
     host, _, err := net.SplitHostPort(cfg.Address)
     if err != nil {
         res.Text = "Address is not of form host:port: " + err.Error()
         res.Status = false
-        WarningLog.Printfln("Address is not of form host:port: %v", err)
+        WarningLog.Printf("Address is not of form host:port: %v \n", err)
         return res, nil
     }
     
@@ -24,7 +24,7 @@ func TCPCheck(cfg db.Config, WarningLog *log.Logger, InfoLog *log.Logger) (db.Re
     if err != nil {
         res.Text = "Error in Name resolution: " + err.Error()
         res.Status = false
-        WarningLog.Printfln("Error in Name resolution: %v", err)
+        WarningLog.Printf("Error in Name resolution: %v \n", err)
         return res, nil
     }
     
@@ -32,10 +32,15 @@ func TCPCheck(cfg db.Config, WarningLog *log.Logger, InfoLog *log.Logger) (db.Re
     if err != nil {
         res.Text = "Connection failed: " + err.Error()
         res.Status = false
-        WarningLog.Printfln("An error during http connection: %v", err)
+        WarningLog.Printf("An error during http connection: %v \n", err)
         return res, nil
     }
-    defer conn.Close()
+    defer func() {
+        if cerr = conn.Close(); cerr != nil {
+            WarningLog.Printf("TCP Connection could not be closed: %v \n", cerr)
+            res.Text += fmt.Sprintf(" (note: connection close failed: %v)", cerr)
+        }
+    }()
 
     res.Status = true
     res.Text = "TCP connection successful"

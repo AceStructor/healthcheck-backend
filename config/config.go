@@ -24,7 +24,16 @@ type RawConfigElement struct {
 func TranslateConfig(path String, WarningLog *log.Logger, InfoLog *log.Logger) ([]db.Config, error) {
     InfoLog.Println("Starting Config Translation...")
     var cfgs []db.Config
-    content, err := ioutil.ReadFile(path)
+    file, err := os.OpenFile(path)
+    if err != nil {
+        return nil, fmt.Errorf("Error while reading config at %v: %w", path, err)
+    }
+    defer func() {
+        if cerr := file.Close(); cerr != nil {
+            WarningLog.Printf("Config file could not be closed: %v", cerr)
+        }
+    }()
+    content, err := io.ReadAll(file)
     if err != nil {
         return nil, fmt.Errorf("Error while reading config at %v: %w", path, err)
     }

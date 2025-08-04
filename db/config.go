@@ -9,7 +9,7 @@ import (
 )
 
 func WriteConfig(cfg Config, WarningLog *log.Logger, InfoLog *log.Logger) error {
-    InfoLog.Printfln("Creating Config %v (%v)", cfg.Name, cfg.Address)
+    InfoLog.Printf("Creating Config %v (%v) \n", cfg.Name, cfg.Address)
     if err := DB.Create(&cfg).Error; err != nil {
         return fmt.Errorf("failed to create configuration entry: %w", err)
     }
@@ -29,7 +29,7 @@ func ReadConfig(WarningLog *log.Logger, InfoLog *log.Logger) ([]Config, error) {
 }
 
 func DisableConfig(cfg Config, WarningLog *log.Logger, InfoLog *log.Logger) error {
-	InfoLog.Printfln("Disabling Config %v", cfg.ID)
+	InfoLog.Printf("Disabling Config %v \n", cfg.ID)
 	var targetConfig Config
 	
 	if err := DB.First(&targetConfig, cfg.ID).Error; err != nil {
@@ -44,7 +44,7 @@ func DisableConfig(cfg Config, WarningLog *log.Logger, InfoLog *log.Logger) erro
 }
 
 func UpdateConfig(cfg Config, WarningLog *log.Logger, InfoLog *log.Logger) error {
-	InfoLog.Printfln("Updating Config %v", cfg.ID)
+	InfoLog.Printf("Updating Config %v \n", cfg.ID)
 	var targetConfig Config
 	
 	if err := DB.First(&targetConfig, cfg.ID).Error; err != nil {

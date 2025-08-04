@@ -9,7 +9,7 @@ import (
 )
 
 func HTTPCheck(cfg db.Config, WarningLog *log.Logger, InfoLog *log.Logger) (db.Result, error) {
-    InfoLog.Printfln("Running http check for %v", cfg.Name)
+    InfoLog.Printf("Running http check for %v \n", cfg.Name)
     var res db.Result
     
     client := &http.Client{ Timeout: cfg.Timeout * time.Second }
@@ -19,7 +19,7 @@ func HTTPCheck(cfg db.Config, WarningLog *log.Logger, InfoLog *log.Logger) (db.R
     if err != nil {
         res.Text = "Connection failed: " + err.Error()
         res.Status = false
-        WarningLog.Printfln("An error during http connection: %v", err)
+        WarningLog.Printf("An error during http connection: %v \n", err)
         return res, nil
     }
     if resp.StatusCode >= 200 && resp.StatusCode < 300 {

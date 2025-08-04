@@ -25,6 +25,11 @@ func InitDB(WarningLog *log.Logger, InfoLog *log.Logger) error {
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
+    defer func() {
+        if cerr = DB.Close(); cerr != nil {
+            WarningLog.Printf("failed to close database: %v \n", cerr)
+        }
+    }()
     
     // Migrate the database scheme
     InfoLog.Println("Migrating Database Scheme...")
