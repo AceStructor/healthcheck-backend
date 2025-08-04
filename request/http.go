@@ -9,7 +9,7 @@ import (
 )
 
 func HTTPCheck(cfg db.Config, WarningLog *log.Logger, InfoLog *log.Logger) (db.Result, error) {
-    InfoLog.Printfln("Running http check for %v", cfg.ID)
+    InfoLog.Printfln("Running http check for %v", cfg.Name)
     var res db.Result
     
     client := &http.Client{ Timeout: cfg.Timeout * time.Second }
