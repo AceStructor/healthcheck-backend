@@ -51,7 +51,19 @@ func UpdateConfig(cfg Config, WarningLog *log.Logger, InfoLog *log.Logger) error
         return fmt.Errorf("failed to find config in database: %w", err)
     }
     
-    if err := DB.Model(&targetConfig).Updates(Config{Name: cfg.Name, Type: cfg.Type, Target: cfg.Target, IntervalSeconds: cfg.IntervalSeconds, LastChecked: cfg.LastChecked, Timeout: cfg.Timeout}).Error; err != nil {
+    if err := DB.Model(&targetConfig).Updates(Config{
+            Name: cfg.Name, 
+            Type: cfg.Type, 
+            Target: cfg.Target, 
+            IntervalSeconds: cfg.IntervalSeconds, 
+            LastChecked: cfg.LastChecked, 
+            Timeout: cfg.Timeout, 
+            Method: cfg.Method, 
+            Headers: cfg.Headers, 
+            ExpectStatus: cfg.ExpectStatus, 
+            RecordType: cfg.RecordType, 
+            ExpectIP: cfg.ExpectIP
+        }).Error; err != nil {
 		return fmt.Errorf("failed to update config: %w", err)
 	}
 	
