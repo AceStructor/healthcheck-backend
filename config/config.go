@@ -40,6 +40,7 @@ type RawDNSElement struct {
     Interval int    `yaml:"interval"` // in seconds
     RecordType *string `yaml:"record_type,omitempty"`
     ExpectIP *string `yaml:"expect_ip,omitempty"`
+    DNSServer *string `yaml:"dns_server,omitempty"`
 }
 
 func NewHTTPConfig(httpc RawHTTPElement) db.Config {
@@ -74,6 +75,7 @@ func NewDNSConfig(dnsc RawDNSElement) db.Config {
 		IntervalSeconds: dnsc.Interval,
 		RecordType:		 helper.stringOrDefault(dnsc.RecordType, "A"),
 		ExpectIP:	     helper.stringOrDefault(dnsc.ExpectIP, "")
+        DNSServer:       helper.stringOrDefault(dnsc.DNSServer, "1.1.1.1")
 	}
 }
 

@@ -17,6 +17,7 @@ type Config struct {
     ExpectStatus   int
     RecordType     string
     ExpectIP       string
+    DNSServer	   string
     CreatedAt      time.Time
     LastChecked    time.Time
     Disabled       bool `gorm:"not null;default:false"`

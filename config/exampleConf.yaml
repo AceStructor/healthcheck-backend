@@ -18,4 +18,5 @@ dns:
     interval: 300
     record_type: A
     expect_ip: 192.18.1.20
+    dns_server: 8.8.8.8
     

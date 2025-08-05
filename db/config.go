@@ -62,7 +62,8 @@ func UpdateConfig(cfg Config, WarningLog *log.Logger, InfoLog *log.Logger) error
             Headers: cfg.Headers, 
             ExpectStatus: cfg.ExpectStatus, 
             RecordType: cfg.RecordType, 
-            ExpectIP: cfg.ExpectIP
+            ExpectIP: cfg.ExpectIP,
+            DNSServer: cfg.DNSServer
         }).Error; err != nil {
 		return fmt.Errorf("failed to update config: %w", err)
 	}
