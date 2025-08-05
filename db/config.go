@@ -9,7 +9,7 @@ import (
 )
 
 func WriteConfig(cfg Config, WarningLog *log.Logger, InfoLog *log.Logger) error {
-    InfoLog.Printf("Creating Config %v (%v) \n", cfg.Name, cfg.Address)
+    InfoLog.Printf("Creating Config %v (%v) \n", cfg.Name, cfg.Target)
     if err := DB.Create(&cfg).Error; err != nil {
         return fmt.Errorf("failed to create configuration entry: %w", err)
     }
@@ -51,7 +51,7 @@ func UpdateConfig(cfg Config, WarningLog *log.Logger, InfoLog *log.Logger) error
         return fmt.Errorf("failed to find config in database: %w", err)
     }
     
-    if err := DB.Model(&targetConfig).Updates(Config{Name: cfg.Name, Type: cfg.Type, Address: cfg.Address, IntervalSeconds: cfg.IntervalSeconds, LastChecked: cfg.LastChecked, Timeout: cfg.Timeout}).Error; err != nil {
+    if err := DB.Model(&targetConfig).Updates(Config{Name: cfg.Name, Type: cfg.Type, Target: cfg.Target, IntervalSeconds: cfg.IntervalSeconds, LastChecked: cfg.LastChecked, Timeout: cfg.Timeout}).Error; err != nil {
 		return fmt.Errorf("failed to update config: %w", err)
 	}
 	

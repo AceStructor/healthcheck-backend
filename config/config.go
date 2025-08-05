@@ -7,6 +7,7 @@ import (
 
     "gopkg.in/yaml.v3"
     "github.com/AceStructor/healthcheck-backend/db"
+    "github.com/AceStructor/healthcheck-backend/helper"
 )
 
 type RawConfig struct {
@@ -17,17 +18,17 @@ type RawConfig struct {
 
 type RawHTTPElement struct {
     Name     string `yaml:"name"`
-    URL      string `yaml:"url"`
+    Target   string `yaml:"url"`
     Interval int    `yaml:"interval"` // in seconds
     Timeout	 int    `yaml:"timeout"`
-    Method   string `yaml:"method"`
-    Headers  string `yaml:"headers"`
-    ExpectStatus string `yaml:"expect_status"`
+    Method   *string `yaml:"method,omitempty"`
+    Headers  *string `yaml:"headers,omitempty"`
+    ExpectStatus *int `yaml:"expect_status,omitempty"`
 }
 
 type RawTLSElement struct {
     Name     string `yaml:"name"`
-    Host     string `yaml:"host"`
+    Target   string `yaml:"host"`
     Port     string `yaml:"port"`
     Interval int    `yaml:"interval"` // in seconds
     Timeout	 int    `yaml:"timeout"`
@@ -35,10 +36,45 @@ type RawTLSElement struct {
 
 type RawDNSElement struct {
     Name     string `yaml:"name"`
-    Hostname string `yaml:"hostname"`
+    Target   string `yaml:"hostname"`
     Interval int    `yaml:"interval"` // in seconds
-    RecordType string `yaml:"record_type"`
-    ExpectIP string `yaml:"expect_IP"`
+    RecordType *string `yaml:"record_type,omitempty"`
+    ExpectIP *string `yaml:"expect_ip,omitempty"`
+}
+
+func NewHTTPConfig(httpc RawHTTPElement) db.Config {
+	return db.Config{
+		Type:            "http"
+		Name:            httpc.Name,
+		Target:          httpc.Target,
+		IntervalSeconds: httpc.Interval,
+		Timeout:		 httpc.Timeout,
+		Method:          helper.stringOrDefault(httpc.Method, "GET"),
+		Headers:         helper.stringOrDefault(httpc.Headers, ""),
+		ExpectStatus:    helper.intOrDefault(httpc.ExpectStatus, 200),
+	}
+}
+
+func NewTLSConfig(tlsc RawTLSElement) db.Config {
+	return db.Config{
+		Type:            "tls"
+		Name:            tlsc.Name,
+		Target:          tlsc.Target,
+		Port:            tlsc.Port,
+		IntervalSeconds: tlsc.Interval,
+		Timeout:		 tlsc.Timeout
+	}
+}
+
+func NewDNSConfig(dnsc RawDNSElement) db.Config {
+	return db.Config{
+		Type:            "dns"
+		Name:            dnsc.Name,
+		Target:          dnsc.Target,
+		IntervalSeconds: dnsc.Interval,
+		RecordType:		 helper.stringOrDefault(dnsc.RecordType, "A"),
+		ExpectIP:	     helper.stringOrDefault(dnsc.ExpectIP, "")
+	}
 }
 
 func TranslateConfig(path String, WarningLog *log.Logger, InfoLog *log.Logger) ([]db.Config, error) {
@@ -64,28 +100,13 @@ func TranslateConfig(path String, WarningLog *log.Logger, InfoLog *log.Logger) (
     }
     
     for _, httpc := range rawConfig.HTTP {
-        cfgs = append(cfgs, db.Config{
-            Name:            httpc.Name,
-            Address:         httpc.Address,
-            IntervalSeconds: httpc.Interval,
-            Timeout:		 httpc.Timeout
-        })
+        cfgs = append(cfgs, NewHTTPConfig(httpc))
     }
     for _, tlsc := range rawConfig.TLS {
-        cfgs = append(cfgs, db.Config{
-            Name:            tlsc.Name,
-            Address:         tlsc.Address,
-            IntervalSeconds: tlsc.Interval,
-            Timeout:		 tlsc.Timeout
-        })
+        cfgs = append(cfgs, NewTLSConfig(tlsc))
     }
     for _, dnsc := range rawConfig.DNS {
-        cfgs = append(cfgs, db.Config{
-            Name:            dnsc.Name,
-            Address:         dnsc.Address,
-            IntervalSeconds: dnsc.Interval,
-            Timeout:		 dnsc.Timeout
-        })
+        cfgs = append(cfgs, NewDNSConfig(dnsc))
     }
     
     InfoLog.Println("Config Translation Successful!")

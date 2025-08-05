@@ -12,7 +12,7 @@ func DNSCheck(cfg db.Config, WarningLog *log.Logger, InfoLog *log.Logger) (db.Re
     InfoLog.Printf("Running DNS check for %v \n", cfg.Name)
     var res db.Result
     
-    resp, err := net.LookupHost(host)
+    resp, err := net.LookupHost(cfg.Target)
     if err != nil {
         res.Text = "Error in Name resolution: " + err.Error()
         res.Status = false

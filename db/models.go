@@ -8,9 +8,15 @@ type Config struct {
     ID             uint `gorm:"primaryKey"`
     Name           string
     Type           string // "http", "tcp", "dns"
-    Address        string
+    Target         string
+    Port           int
     IntervalSeconds int
     Timeout		   int
+    Method         string
+    Headers        string
+    ExpectStatus   int
+    RecordType     string
+    ExpectIP       string
     CreatedAt      time.Time
     LastChecked    time.Time
     Disabled       bool `gorm:"not null;default:false"`
@@ -28,7 +34,7 @@ type Result struct {
 type JoinedResult struct {
 	Name	      string
 	Type          string
-	Address       string
+	Target        string
 	Status        bool
 	Text	      string
 }

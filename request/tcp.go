@@ -12,23 +12,7 @@ func TCPCheck(cfg db.Config, WarningLog *log.Logger, InfoLog *log.Logger) (db.Re
     InfoLog.Printf("Running tcp check for %v \n", cfg.Name)
     var res db.Result
     
-    host, _, err := net.SplitHostPort(cfg.Address)
-    if err != nil {
-        res.Text = "Address is not of form host:port: " + err.Error()
-        res.Status = false
-        WarningLog.Printf("Address is not of form host:port: %v \n", err)
-        return res, nil
-    }
-    
-    _, err := net.LookupHost(host)
-    if err != nil {
-        res.Text = "Error in Name resolution: " + err.Error()
-        res.Status = false
-        WarningLog.Printf("Error in Name resolution: %v \n", err)
-        return res, nil
-    }
-    
-    conn, err := net.DialTimeout("tcp", cfg.Address, cfg.Timeout*time.Second)
+    conn, err := net.DialTimeout("tcp", cfg.Target + ":" + cfg.Port, cfg.Timeout*time.Second)
     if err != nil {
         res.Text = "Connection failed: " + err.Error()
         res.Status = false
