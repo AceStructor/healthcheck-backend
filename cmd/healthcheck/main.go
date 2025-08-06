@@ -1,37 +1,37 @@
 package main
 
 import (
-    "log"
-    "os"
-    "os/signal"
+	"log"
+	"os"
+	"os/signal"
 	"syscall"
 	"time"
-    
-    "github.com/AceStructor/healthcheck-backend/db"
+
 	"github.com/AceStructor/healthcheck-backend/config"
+	"github.com/AceStructor/healthcheck-backend/db"
 	"github.com/AceStructor/healthcheck-backend/request"
 )
 
 var (
-    WarningLog *log.Logger
-    InfoLog   *log.Logger
-    ErrorLog   *log.Logger
+	WarningLog *log.Logger
+	InfoLog    *log.Logger
+	ErrorLog   *log.Logger
 )
 
 func initLogging() {
-    file, err := os.OpenFile("log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer func() {
-        if err = file.Close(); err != nil {
-            log.Fatal(err)
-        }
-    }()
+	file, err := os.OpenFile("log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		if err = file.Close(); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
-    InfoLog = log.New(file, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
-    WarningLog = log.New(file, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
-    ErrorLog = log.New(file, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+	InfoLog = log.New(file, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
+	WarningLog = log.New(file, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+	ErrorLog = log.New(file, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
 }
 
 func main() {

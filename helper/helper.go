@@ -1,19 +1,15 @@
 package helper
 
-include (
-	"fmt"
-)
-
-func stringOrDefault(ptr *string, default string) string {
+func StringOrDefault(ptr *string, def string) string {
 	if ptr != nil {
 		return *ptr
 	}
-	return default
+	return def
 }
 
-func intOrDefault(ptr *int, default int) int {
+func IntOrDefault(ptr *int, def int) int {
 	if ptr != nil {
 		return *ptr
 	}
-	return default
+	return def
 }

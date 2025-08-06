@@ -26,15 +26,15 @@ func InitDB(WarningLog *log.Logger, InfoLog *log.Logger) error {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
     defer func() {
-        if cerr = DB.Close(); cerr != nil {
+        dbInterface, _ := DB.DB()
+        if cerr := dbInterface.Close(); cerr != nil {
             WarningLog.Printf("failed to close database: %v \n", cerr)
         }
     }()
     
     // Migrate the database scheme
     InfoLog.Println("Migrating Database Scheme...")
-    err := DB.AutoMigrate(&Config{}, &Result{})
-    if err := nil {
+    if err := DB.AutoMigrate(&Config{}, &Result{}); err != nil {
         return fmt.Errorf("failed to create or update tables according to the defined schemes: %w", err)
     }
     
