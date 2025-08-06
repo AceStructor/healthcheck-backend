@@ -1,9 +1,9 @@
 package db
 
 import (
-    "fmt"
+	"fmt"
+	"log"
 	"os"
-    "log"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -13,7 +13,7 @@ var DB *gorm.DB
 
 func InitDB(WarningLog *log.Logger, InfoLog *log.Logger) error {
 	InfoLog.Println("Initializing Database...")
-    dsn := fmt.Sprintf("%s:%s@(%s:3306)/%s?charset=utf8&parseTime=True",
+	dsn := fmt.Sprintf("%s:%s@(%s:3306)/%s?charset=utf8&parseTime=True",
 		os.Getenv("DB_USER"),
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_URL"),
@@ -25,19 +25,19 @@ func InitDB(WarningLog *log.Logger, InfoLog *log.Logger) error {
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
-    defer func() {
-        dbInterface, _ := DB.DB()
-        if cerr := dbInterface.Close(); cerr != nil {
-            WarningLog.Printf("failed to close database: %v \n", cerr)
-        }
-    }()
-    
-    // Migrate the database scheme
-    InfoLog.Println("Migrating Database Scheme...")
-    if err := DB.AutoMigrate(&Config{}, &Result{}); err != nil {
-        return fmt.Errorf("failed to create or update tables according to the defined schemes: %w", err)
-    }
-    
-    InfoLog.Println("Database ready!")
-    return nil
+	defer func() {
+		dbInterface, _ := DB.DB()
+		if cerr := dbInterface.Close(); cerr != nil {
+			WarningLog.Printf("failed to close database: %v \n", cerr)
+		}
+	}()
+
+	// Migrate the database scheme
+	InfoLog.Println("Migrating Database Scheme...")
+	if err := DB.AutoMigrate(&Config{}, &Result{}); err != nil {
+		return fmt.Errorf("failed to create or update tables according to the defined schemes: %w", err)
+	}
+
+	InfoLog.Println("Database ready!")
+	return nil
 }

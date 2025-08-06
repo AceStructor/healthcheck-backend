@@ -4,7 +4,9 @@ http:
     interval: 60
     timeout: 5
     method: GET
-    headers: 
+    headers:
+      Content-Type: application/json
+      Authorization: Bearer xyz123
     expect_status: 200
 tcp:
   - name: API

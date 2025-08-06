@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-func WriteResult(res Result, configId uint, WarningLog *log.Logger, InfoLog *log.Logger) error {
+func WriteResult(res *Result, configId uint, WarningLog *log.Logger, InfoLog *log.Logger) error {
 	InfoLog.Printf("Writing Result for congig %v \n", configId)
 	writeableResult := Result{ConfigID: configId, Status: res.Status, Text: res.Text, ResponseTime: res.ResponseTime}
 
@@ -29,7 +29,7 @@ func ReadResult(query string, limit int32, offset int32, orderBy string, orderDi
 		Offset(int(offset)).
 		Order(orderBy + " " + orderDirection).
 		Scan(&ress).
-        Error; err != nil {
+		Error; err != nil {
 		return nil, fmt.Errorf("failed to search: %w", err)
 	}
 

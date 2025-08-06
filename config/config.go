@@ -1,10 +1,10 @@
 package config
 
 import (
-    "os"
 	"fmt"
 	"io"
 	"log"
+	"os"
 
 	"github.com/AceStructor/healthcheck-backend/db"
 	"github.com/AceStructor/healthcheck-backend/helper"
@@ -18,13 +18,13 @@ type RawConfig struct {
 }
 
 type RawHTTPElement struct {
-	Name         string  `yaml:"name"`
-	Target       string  `yaml:"url"`
-	Interval     int     `yaml:"interval"` // in seconds
-	Timeout      int     `yaml:"timeout"`
-	Method       *string `yaml:"method,omitempty"`
-	Headers      *string `yaml:"headers,omitempty"`
-	ExpectStatus *int    `yaml:"expect_status,omitempty"`
+	Name         string             `yaml:"name"`
+	Target       string             `yaml:"url"`
+	Interval     int                `yaml:"interval"` // in seconds
+	Timeout      int                `yaml:"timeout"`
+	Method       *string            `yaml:"method,omitempty"`
+	Headers      *map[string]string `yaml:"headers,omitempty"`
+	ExpectStatus *int               `yaml:"expect_status,omitempty"`
 }
 
 type RawTCPElement struct {
@@ -44,21 +44,22 @@ type RawDNSElement struct {
 	DNSServer  *string `yaml:"dns_server,omitempty"`
 }
 
-func NewHTTPConfig(httpc RawHTTPElement) db.Config {
-	return db.Config{
+func NewHTTPConfig(httpc RawHTTPElement) *db.Config {
+	cfg := db.Config{
 		Type:            "http",
 		Name:            httpc.Name,
 		Target:          httpc.Target,
 		IntervalSeconds: httpc.Interval,
 		Timeout:         httpc.Timeout,
 		Method:          helper.StringOrDefault(httpc.Method, "GET"),
-		Headers:         helper.StringOrDefault(httpc.Headers, ""),
+		Headers:         httpc.Headers,
 		ExpectStatus:    helper.IntOrDefault(httpc.ExpectStatus, 200),
 	}
+	return &cfg
 }
 
-func NewTCPConfig(tcpc RawTCPElement) db.Config {
-	return db.Config{
+func NewTCPConfig(tcpc RawTCPElement) *db.Config {
+	cfg := db.Config{
 		Type:            "tcp",
 		Name:            tcpc.Name,
 		Target:          tcpc.Target,
@@ -66,10 +67,11 @@ func NewTCPConfig(tcpc RawTCPElement) db.Config {
 		IntervalSeconds: tcpc.Interval,
 		Timeout:         tcpc.Timeout,
 	}
+	return &cfg
 }
 
-func NewDNSConfig(dnsc RawDNSElement) db.Config {
-	return db.Config{
+func NewDNSConfig(dnsc RawDNSElement) *db.Config {
+	cfg := db.Config{
 		Type:            "dns",
 		Name:            dnsc.Name,
 		Target:          dnsc.Target,
@@ -78,11 +80,12 @@ func NewDNSConfig(dnsc RawDNSElement) db.Config {
 		ExpectIP:        helper.StringOrDefault(dnsc.ExpectIP, ""),
 		DNSServer:       helper.StringOrDefault(dnsc.DNSServer, "1.1.1.1"),
 	}
+	return &cfg
 }
 
-func TranslateConfig(path string, WarningLog *log.Logger, InfoLog *log.Logger) ([]db.Config, error) {
+func TranslateConfig(path string, WarningLog *log.Logger, InfoLog *log.Logger) ([]*db.Config, error) {
 	InfoLog.Println("Starting Config Translation...")
-	var cfgs []db.Config
+	var cfgs []*db.Config
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("Error while reading config at %v: %w", path, err)
@@ -118,7 +121,7 @@ func TranslateConfig(path string, WarningLog *log.Logger, InfoLog *log.Logger) (
 
 func InitConfig(WarningLog *log.Logger, InfoLog *log.Logger) error {
 	InfoLog.Println("Initializing Configuration...")
-	var cfgs []db.Config
+	var cfgs []*db.Config
 
 	cfgs, err := TranslateConfig("config/exampleConf.yaml", WarningLog, InfoLog)
 	if err != nil {
@@ -133,7 +136,7 @@ func InitConfig(WarningLog *log.Logger, InfoLog *log.Logger) error {
 	return nil
 }
 
-func AddConfig(cfgs []db.Config, WarningLog *log.Logger, InfoLog *log.Logger) error {
+func AddConfig(cfgs []*db.Config, WarningLog *log.Logger, InfoLog *log.Logger) error {
 	for _, cfg := range cfgs {
 		if err := db.WriteConfig(cfg, WarningLog, InfoLog); err != nil {
 			return fmt.Errorf("Error while writing config %v: %w", cfg.ID, err)

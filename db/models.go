@@ -13,7 +13,7 @@ type Config struct {
 	IntervalSeconds int
 	Timeout         int
 	Method          string
-	Headers         string
+	Headers         *map[string]string `gorm:"type:jsonb"`
 	ExpectStatus    int
 	RecordType      string
 	ExpectIP        string
@@ -28,7 +28,7 @@ type Result struct {
 	ConfigID     uint
 	Status       bool
 	Text         string
-	ResponseTime int
+	ResponseTime time.Duration
 	CheckedAt    time.Time
 }
 

@@ -10,27 +10,28 @@ import (
 
 func RunChecks(WarningLog *log.Logger, InfoLog *log.Logger) error {
 	cfgs, err := db.ReadConfig(WarningLog, InfoLog)
-    if err != nil {
+	if err != nil {
 		return fmt.Errorf("Error reading configs from database: %w", err)
 	}
 
 	for _, cfg := range cfgs {
 		InfoLog.Printf("Executing check for config %v \n", cfg.ID)
 		tStart := time.Now()
-		if tStart < cfg.LastChecked.Add(time.ParseDuration(fmt.Printf("%vs", cfg.IntervalSeconds))) {
+		skipInterval, _ := time.ParseDuration(fmt.Sprintf("%ds", cfg.IntervalSeconds))
+		if tStart.Before(cfg.LastChecked.Add(skipInterval)) {
 			continue
 		}
 
 		var (
-			res db.Result
+			res *db.Result
 			err error
 		)
 
 		switch cfg.Type {
 		case "http":
 			res, err = HTTPCheck(cfg, WarningLog, InfoLog)
-		case "tls":
-			res, err = TLSCheck(cfg, WarningLog, InfoLog)
+		case "tcp":
+			res, err = TCPCheck(cfg, WarningLog, InfoLog)
 		case "dns":
 			res, err = DNSCheck(cfg, WarningLog, InfoLog)
 		default:
@@ -38,6 +39,9 @@ func RunChecks(WarningLog *log.Logger, InfoLog *log.Logger) error {
 		}
 		if err != nil {
 			return fmt.Errorf("Error during Check: %w", err)
+		}
+		if res == nil {
+			return fmt.Errorf("Error during Check: No result was created!")
 		}
 		duration := time.Since(tStart)
 

@@ -2,15 +2,15 @@ package request
 
 import (
 	"fmt"
-    "log"
 	"github.com/miekg/dns"
+	"log"
 	"slices"
 	"time"
 
 	"github.com/AceStructor/healthcheck-backend/db"
 )
 
-func DNSCheck(cfg db.Config, WarningLog *log.Logger, InfoLog *log.Logger) (db.Result, error) {
+func DNSCheck(cfg *db.Config, WarningLog *log.Logger, InfoLog *log.Logger) (*db.Result, error) {
 	InfoLog.Printf("Running DNS check for %v \n", cfg.Name)
 	var res db.Result
 
@@ -32,7 +32,7 @@ func DNSCheck(cfg db.Config, WarningLog *log.Logger, InfoLog *log.Logger) (db.Re
 		res.Text = "Record Type invalid: " + cfg.RecordType
 		res.Status = false
 		WarningLog.Printf("Record Type invalid: %v \n", cfg.RecordType)
-		return res, nil
+		return &res, nil
 	}
 
 	c := new(dns.Client)
@@ -43,14 +43,14 @@ func DNSCheck(cfg db.Config, WarningLog *log.Logger, InfoLog *log.Logger) (db.Re
 		res.Text = "DNS Request failed: " + err.Error()
 		res.Status = false
 		WarningLog.Printf("DNS Request failed: %v \n", err.Error())
-		return res, nil
+		return &res, nil
 	}
 
 	if r.Rcode != dns.RcodeSuccess {
-		res.Text = "DNS query failed with code: " + r.Rcode
+		res.Text = fmt.Sprintf("DNS query failed with code: %d", r.Rcode)
 		res.Status = false
 		WarningLog.Printf("DNS query failed with code %v: %v \n", r.Rcode, err.Error())
-		return res, nil
+		return &res, nil
 	}
 
 	var resp []string
@@ -70,7 +70,7 @@ func DNSCheck(cfg db.Config, WarningLog *log.Logger, InfoLog *log.Logger) (db.Re
 	case "CNAME":
 		for _, ans := range r.Answer {
 			if t, ok := ans.(*dns.CNAME); ok {
-				resp = append(txts, t.Target)
+				resp = append(resp, t.Target)
 			}
 		}
 	case "MX":
@@ -99,10 +99,10 @@ func DNSCheck(cfg db.Config, WarningLog *log.Logger, InfoLog *log.Logger) (db.Re
 		res.Text = "Error in Name resolution: Name was not resolved to the expected IP " + cfg.ExpectIP
 		res.Status = false
 		WarningLog.Printf("Error in Name resolution: Name was not resolved to the expected IP %v \n", cfg.ExpectIP)
-		return res, nil
+		return &res, nil
 	}
 
 	res.Status = true
-	res.Text = fmt.Print("DNS resolution was successful")
-	return res, nil
+	res.Text = fmt.Sprint("DNS resolution was successful")
+	return &res, nil
 }
