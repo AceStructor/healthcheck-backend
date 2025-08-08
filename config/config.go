@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"os"
+    "strings"
 
 	"github.com/AceStructor/healthcheck-backend/db"
 	"github.com/AceStructor/healthcheck-backend/helper"
@@ -44,7 +45,7 @@ type RawDNSElement struct {
 	DNSServer  *string `yaml:"dns_server,omitempty"`
 }
 
-func NewHTTPConfig(httpc RawHTTPElement) *db.Config {
+func NewHTTPConfig(httpc RawHTTPElement) (*db.Config, error) {
 	cfg := db.Config{
 		Type:            "http",
 		Name:            httpc.Name,
@@ -55,10 +56,13 @@ func NewHTTPConfig(httpc RawHTTPElement) *db.Config {
 		Headers:         httpc.Headers,
 		ExpectStatus:    helper.IntOrDefault(httpc.ExpectStatus, 200),
 	}
-	return &cfg
+    if err := helper.ValidateConfig("http", cfg); err != nil {
+        return nil, err
+    }
+	return &cfg, nil
 }
 
-func NewTCPConfig(tcpc RawTCPElement) *db.Config {
+func NewTCPConfig(tcpc RawTCPElement) (*db.Config, error) {
 	cfg := db.Config{
 		Type:            "tcp",
 		Name:            tcpc.Name,
@@ -67,10 +71,13 @@ func NewTCPConfig(tcpc RawTCPElement) *db.Config {
 		IntervalSeconds: tcpc.Interval,
 		Timeout:         tcpc.Timeout,
 	}
-	return &cfg
+    if err := helper.ValidateConfig("tcp", cfg); err != nil {
+        return nil, err
+    }
+	return &cfg, nil
 }
 
-func NewDNSConfig(dnsc RawDNSElement) *db.Config {
+func NewDNSConfig(dnsc RawDNSElement) (*db.Config, error) {
 	cfg := db.Config{
 		Type:            "dns",
 		Name:            dnsc.Name,
@@ -80,7 +87,10 @@ func NewDNSConfig(dnsc RawDNSElement) *db.Config {
 		ExpectIP:        helper.StringOrDefault(dnsc.ExpectIP, ""),
 		DNSServer:       helper.StringOrDefault(dnsc.DNSServer, "1.1.1.1"),
 	}
-	return &cfg
+    if err := helper.ValidateConfig("dns", cfg); err != nil {
+        return nil, err
+    }
+	return &cfg, nil
 }
 
 func TranslateConfig(path string, WarningLog *log.Logger, InfoLog *log.Logger) ([]*db.Config, error) {
@@ -105,15 +115,32 @@ func TranslateConfig(path string, WarningLog *log.Logger, InfoLog *log.Logger) (
 		return nil, fmt.Errorf("Error while unmarshaling yaml: %w", err)
 	}
 
-	for _, httpc := range rawConfig.HTTP {
-		cfgs = append(cfgs, NewHTTPConfig(httpc))
+    var allErrs []string
+	for i, httpc := range rawConfig.HTTP {
+        cfg, err := NewHTTPConfig(httpc)
+        if err != nil {
+            allErrs = append(allErrs, fmt.Sprintf("HTTP config %d: %v", i+1, err))
+        }
+		cfgs = append(cfgs, cfg)
 	}
-	for _, tcpc := range rawConfig.TCP {
-		cfgs = append(cfgs, NewTCPConfig(tcpc))
+	for i, tcpc := range rawConfig.TCP {
+        cfg, err := NewTCPConfig(tcpc)
+        if err != nil {
+            allErrs = append(allErrs, fmt.Sprintf("TCP config %d: %v", i+1, err))
+        }
+		cfgs = append(cfgs, cfg)
 	}
-	for _, dnsc := range rawConfig.DNS {
-		cfgs = append(cfgs, NewDNSConfig(dnsc))
+	for i, dnsc := range rawConfig.DNS {
+        cfg, err := NewDNSConfig(dnsc)
+        if err != nil {
+            allErrs = append(allErrs, fmt.Sprintf("DNS config %d: %v", i+1, err))
+        }
+		cfgs = append(cfgs, cfg)
 	}
+    
+    if len(allErrs) > 0 {
+        return nil, fmt.Errorf("validation failed:\n%s", strings.Join(allErrs, "\n"))
+    }
 
 	InfoLog.Println("Config Translation Successful!")
 	return cfgs, nil

@@ -2,7 +2,6 @@ http:
   - name: Frontend
     url: https://example.com
     interval: 60
-    timeout: 5
     method: GET
     headers:
       Content-Type: application/json
@@ -13,11 +12,9 @@ tcp:
     host: 127.0.0.1
     port: 3000
     interval: 30
-    timeout: 10
 dns:
   - name: Server
     hostname: example.com
-    interval: 300
     record_type: A
     expect_ip: 192.168.1.20
     dns_server: 8.8.8.8
