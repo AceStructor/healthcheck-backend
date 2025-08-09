@@ -38,4 +38,6 @@ type JoinedResult struct {
 	Target string
 	Status bool
 	Text   string
+    ResponseTime time.Duration
+	CheckedAt    time.Time
 }

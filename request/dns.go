@@ -38,7 +38,7 @@ func DNSCheck(cfg *db.Config, WarningLog *log.Logger, InfoLog *log.Logger) (*db.
 	c := new(dns.Client)
 	c.Timeout = 5 * time.Second
 
-	r, _, err := c.Exchange(m, cfg.DNSServer) // or your DNS server
+	r, _, err := c.Exchange(m, cfg.DNSServer)
 	if err != nil {
 		res.Text = "DNS Request failed: " + err.Error()
 		res.Status = false
@@ -49,7 +49,7 @@ func DNSCheck(cfg *db.Config, WarningLog *log.Logger, InfoLog *log.Logger) (*db.
 	if r.Rcode != dns.RcodeSuccess {
 		res.Text = fmt.Sprintf("DNS query failed with code: %d", r.Rcode)
 		res.Status = false
-		WarningLog.Printf("DNS query failed with code %v: %v \n", r.Rcode, err.Error())
+		WarningLog.Printf("DNS query failed with code: %v \n", r.Rcode)
 		return &res, nil
 	}
 
@@ -96,7 +96,7 @@ func DNSCheck(cfg *db.Config, WarningLog *log.Logger, InfoLog *log.Logger) (*db.
 	}
 
 	if cfg.ExpectIP != "" && !slices.Contains(resp, cfg.ExpectIP) {
-		res.Text = "Error in Name resolution: Name was not resolved to the expected IP " + cfg.ExpectIP
+		res.Text = fmt.Sprintf("Error in Name resolution: Name was not resolved to the expected IP %v", cfg.ExpectIP)
 		res.Status = false
 		WarningLog.Printf("Error in Name resolution: Name was not resolved to the expected IP %v \n", cfg.ExpectIP)
 		return &res, nil

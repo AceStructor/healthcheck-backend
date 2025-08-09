@@ -22,7 +22,7 @@ func ReadResult(query string, limit int32, offset int32, orderBy string, orderDi
 
 	InfoLog.Printf("Query: %v, Limit: %v, Offset: %v, Order By: %v, Order Direction: %v \n", query, limit, offset, orderBy, orderDirection)
 	if err := DB.Table("results").
-		Select("results.name, results.type, results.address, configs.status, configs.text").
+		Select("results.name, results.type, results.address, configs.status, configs.text, results.response_time, results.checked_at").
 		Joins("INNER JOIN configs ON results.config_id = configs.id").
 		Where("configs.name ILIKE ? OR configs.type ILIKE ? OR configs.address ILIKE ? OR results.text ILIKE ?", query, query, query, query).
 		Limit(int(limit)).
