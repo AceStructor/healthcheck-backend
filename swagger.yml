@@ -1,0 +1,331 @@
+openapi: 3.0.3
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+info:
+  title: Healthcheck API
+  version: "1.0.0"
+paths:
+  /results:
+    get:
+      summary: Get monitoring results
+      description: Returns a list of monitoring results, optionally filtered and sorted
+      parameters:
+        - name: query
+          in: query
+          description: Search string to match against name, type, target, or result text
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: offset
+          in: query
+          description: Number of results to skip before starting to return data
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: orderby
+          in: query
+          description: Field name to order results by
+          required: false
+          schema:
+            type: string
+        - name: orderdirection
+          in: query
+          description: Order direction (ascending or descending)
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+      responses:
+        '200':
+          description: List of results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Result"
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /configs:
+    get:
+      summary: Read all active configs
+      description: Returns all active configurations (where disabled = false).
+      operationId: getConfigs
+      tags: [Config]
+      responses:
+        '200':
+          description: List of active configs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Config"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      summary: Write a new config
+      description: Creates a new health check configuration.
+      operationId: createConfig
+      tags: [Config]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Config"
+      responses:
+        '201':
+          description: Config created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Config"
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /configs/{id}:
+    patch:
+      summary: Update config
+      description: Updates a configuration by its ID.
+      operationId: updateConfig
+      tags: [Config]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Config"
+      responses:
+        '200':
+          description: Config updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Config"
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '404':
+          description: Config not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    delete:
+      summary: Disable config
+      description: Marks a configuration as disabled instead of deleting it.
+      operationId: disableConfig
+      tags: [Config]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Config disabled successfully
+        '404':
+          description: Config not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  schemas:
+
+    ConfigBase:
+      type: object
+      required:
+        - id
+        - name
+        - type
+        - target
+        - intervalSeconds
+        - disabled
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        type:
+          type: string
+          enum: ["http","tcp","dns"]
+        target:
+          type: string
+        intervalSeconds:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        lastChecked:
+          type: string
+          format: date-time
+        disabled:
+          type: boolean
+      discriminator:
+        propertyName: type
+        mapping:
+          http: "#/components/schemas/HttpConfig"
+          tcp:  "#/components/schemas/TcpConfig"
+          dns:  "#/components/schemas/DnsConfig"
+
+    HttpConfig:
+      allOf:
+        - $ref: "#/components/schemas/ConfigBase"
+        - type: object
+          properties:
+            timeout:
+              type: integer
+            method:
+              type: string
+            headers:
+              type: object
+              additionalProperties:
+                type: string
+            expectStatus:
+              type: integer
+
+    TcpConfig:
+      allOf:
+        - $ref: "#/components/schemas/ConfigBase"
+        - type: object
+          properties:
+            port:
+              type: integer
+            timeout:
+              type: integer
+
+    DnsConfig:
+      allOf:
+        - $ref: "#/components/schemas/ConfigBase"
+        - type: object
+          properties:
+            recordType:
+              type: string
+              enum: ["A","AAAA","CNAME","MX","SRV","TXT"]
+            expectIP:
+              type: string
+            dnsServer:
+              type: string
+
+    # Polymorphic alias
+    Config:
+      oneOf:
+        - $ref: "#/components/schemas/HttpConfig"
+        - $ref: "#/components/schemas/TcpConfig"
+        - $ref: "#/components/schemas/DnsConfig"
+      discriminator:
+        propertyName: type
+        
+    Result:
+      type: "object"
+      required:
+        - name
+        - type
+        - target
+        - status
+        - text
+        - response_time
+        - checked_at
+      properties:
+        name: 
+          type: string
+          minLength: 2
+        type: 
+          type: string
+          minLength: 2
+        target:
+          type: string
+        status:
+          type: boolean 
+        text:
+          type: string
+        response_time:
+          type: string
+          format: date-time
+        checked_at:
+          type: string
+          format: date-time
+  
+    Error:
+      type: "object"
+      required:
+        - message
+      properties:
+        code:
+          type: integer
+          format: int64
+          description: "Error code"
+        message:
+          type: string
+          description: "Error message"
+security:
+  - ApiKeyAuth: []
